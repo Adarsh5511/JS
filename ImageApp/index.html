@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Image Gallery</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: #f0f0f0;
+        }
+        .wrapper {
+            width: 100vw;
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 20px;
+        }
+        .header {
+            text-align: center;
+            margin-bottom: 20px;
+        }
+        .header h1 {
+            font-size: 3rem;
+            color: #333;
+        }
+        .header input {
+            padding: 10px;
+            font-size: 1rem;
+            width: 300px;
+            margin-top: 10px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            outline: none;
+        }
+        .header input:focus {
+            border-color: #007BFF;
+        }
+        .gallery {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+            gap: 20px;
+            width: 100%;
+            max-width: 1200px;
+            margin-top: 20px;
+        }
+        .gallery img {
+            width: 100%;
+            height: 200px;
+            object-fit: cover;
+            border-radius: 10px;
+            transition: transform 0.3s ease;
+        }
+        .gallery img:hover {
+            transform: scale(1.1);
+        }
+        button {
+            padding: 10px 20px;
+            font-size: 1rem;
+            color: #fff;
+            background-color: #007BFF;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+        button:hover {
+            background-color: #0056b3;
+        }
+    </style>
+</head>
+<body>
+    <div class="wrapper">
+        <div class="header">
+            <h1>Image Gallery</h1>
+            <input type="text" id="searchQuery" placeholder="Search Images">
+            <button id="searchButton">Search</button>
+        </div>
+        <div class="gallery" id="gallery"></div>
+        <button id="loadMoreButton" style="display: none;">Load More Images</button>
+    </div>
+
+    <script>
+        let currentPage = 1;
+        const perPage = 8;
+        let currentQuery = 'Nature';  // Default search query
+
+        document.querySelector('#searchButton').addEventListener('click', function() {
+            currentQuery = document.querySelector('#searchQuery').value || 'Nature';  // Get search query or default to 'Nature'
+            currentPage = 1;  // Reset page number to 1 on new search
+            document.querySelector('#gallery').innerHTML = '';  // Clear the gallery
+            loadImages(currentQuery, currentPage);
+        });
+
+        document.querySelector('#loadMoreButton').addEventListener('click', function() {
+            currentPage++;  // Increment the page number
+            loadImages(currentQuery, currentPage);  // Load more images for the current query and page
+        });
+
+        function loadImages(query, page) {
+            const API_KEY = 'THXkQo98BvTH1y10ujDJkSlaOjl8x5YlQwPiR3xFfrms5I14DmbaDLiJ'; // Replace with your Pexels API key
+            const url = `https://api.pexels.com/v1/search?query=${query}&page=${page}&per_page=${perPage}`;
+
+            // Fetch request to Pexels API
+            fetch(url, {
+                headers: {
+                    Authorization: API_KEY  // Authorization header with API key
+                }
+            })
+            .then(response => response.json())
+            .then(data => {
+                console.log(data.photos)
+                if (data.photos && data.photos.length > 0) {
+                    data.photos.forEach(photo => {
+                        const img = document.createElement('img');
+                        img.src = photo.src.medium;  // Medium size image
+                        img.alt = photo.alt;
+                        document.querySelector('#gallery').appendChild(img);
+                    });
+                    document.querySelector('#loadMoreButton').style.display = 'block';  // Show the 'Load More' button
+                } else {
+                    const message = document.createElement('p');
+                    message.textContent = 'No images found. Try a different search.';
+                    message.style.textAlign = 'center';
+                    message.style.color = '#333';
+                    document.querySelector('#gallery').appendChild(message);
+                    document.querySelector('#loadMoreButton').style.display = 'none';  // Hide 'Load More' button if no images are found
+                }
+            })
+            .catch(error => console.error("Error fetching data:", error));  // Handle errors
+        }
+
+        // Initial load of images when the page first loads
+        loadImages(currentQuery, currentPage);
+    </script>
+</body>
+</html>
